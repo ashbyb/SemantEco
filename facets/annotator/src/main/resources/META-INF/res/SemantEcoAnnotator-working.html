@@ -550,7 +550,19 @@
 		var id = theBundle.bundleID;
 		var theader = '<table id=bundle,' + id + '>\n';
 		var tbody = '';
-		tbody += '<tr><td id=bundleResource,' + id + '><form style="background:white" action=""><select style="width:100%" name="uri"><option value="">implicit</option><option value="col">explicit</option></select></form></td></tr>\n';
+		// Brendan Edit: generate options based off of available headers
+		// I realize this is a nightmare jquery statement, but I had to traverse the DOM somehow...
+		var validHeadersToBundle = $("th.not-bundled").not(".hide-while-empty").not(".ui-selected").filter(function() { 
+			return !($($(this).children()[0].children[0].children[0].children[0].children[0]).hasClass("cellBased-on")); 
+		});
+		// remove selected from possible dropdown
+		var generatedOptions = "";
+		validHeadersToBundle.each(function( index ) {
+			// Keeping this for archiving, but it should be deprecated now that we have a ui-selected class
+			//if ($.inArray($(this).attr('id').split(",")[1], theBundle.bundleCols) == -1) {
+			generatedOptions += "<option>Column " + $(this).attr('id').split(",")[1] + " (" + $($(this).children()[0].children[0].children[0].children[0].children[0].children[0]).attr("title") + ")</option>"
+		});
+		tbody += '<tr><td id=bundleResource,' + id + '><form style="background:white" action=""><select style="width:100%" name="uri"><option value="">implicit</option>' + generatedOptions + '</select></form></td></tr>\n';
 		tbody += '<tr><td id=bundleName,' + id + '>[name template]</td></tr>\n';
 		tbody += '<tr><td style="color:red" class="droppable-prop" id=bundlePropRow,' + id + '>[propertyRow]</td></tr>\n';
 		tbody += '<tr><td style="color:red" class="droppable-class" id=bundleClassRow,' + id + '>[classRow]</td></tr>\n';
@@ -781,6 +793,8 @@
 								var top = document.getElementById("0,"+currentlySelected[i]);
 								var bottom = document.getElementById("bundledRow,"+currentlySelected[i]);
 								var toMove = top.removeChild(top.childNodes[0]);
+								// Brendan edit: column headers moving down to bundles need to be labeled as so
+								$(toMove).removeClass("column-header").addClass("bundled-column-header");
 								bottom.appendChild(toMove);
 								spanSize++;
 								if ( currentlySelected[i] != bStart ){
@@ -790,6 +804,8 @@
 							console.log("bundle starts at col " + bStart + " and spans " + spanSize + " columns");
 							var newHeader = document.getElementById("0,"+bStart);
 							$(newHeader).attr("colspan",spanSize);
+							// Brendan edit: mark this new bundle as a valid column header
+							$(newHeader).addClass("column-header");
 							var temp = document.createElement('div');
 							var stContent = createBundleSubtable(newBundle);
 							temp.innerHTML = stContent;
@@ -935,7 +951,7 @@
 					group.appendChild(oneCol);
 				// column header
                     th = document.createElement('th');
-					$(th).attr("class", "ui-widget-content the-context-menu");
+					$(th).attr("class", "ui-widget-content the-context-menu column-header not-bundled");
                     // $(th).attr("class", "the-context-menu"); // disabled for ease of debugging other things...
                     $(th).attr("id", '0,'+j);
 					var temp = document.createElement('div');
@@ -1206,7 +1222,7 @@ $(document).ready(function() {
 			// * Note that "dnd" is passed in as a parameter from above
 			//   to specify the drag-and-drop functionality.
             //SemantEcoUI.HierarchicalFacet.create("#ClassTree", AnnotatorModule, "queryAnnotatorClassHM", null, {"plugins": ["dnd"], "dnd": dnd});     
-			SemantEcoUI.HierarchicalFacet.create("#ClassTree", AnnotatorModule, "queryClassHM", "annotatorClasses");
+			//SemantEcoUI.HierarchicalFacet.create("#ClassTree", AnnotatorModule, "queryClassHM", "annotatorClasses");
 
 			// drag and drop PROPERTIES
 			// As above, these are the parameters to enable this function for the 
@@ -1261,7 +1277,7 @@ $(document).ready(function() {
 			
 			// Actually creates the hierarchical facet with the above variable
 			//    passed as parameters for the drag-and-drop functionality.
-			SemantEcoUI.HierarchicalFacet.create("#PropertyTree", AnnotatorModule, "queryAnnotatorPropertyHM", "annotatorProperties", {"plugins": ["dnd"], "dnd": dnd_prop});
+			//SemantEcoUI.HierarchicalFacet.create("#PropertyTree", AnnotatorModule, "queryAnnotatorPropertyHM", "annotatorProperties", {"plugins": ["dnd"], "dnd": dnd_prop});
 
 			
 			// not sure what this is??? toString for ... something.
